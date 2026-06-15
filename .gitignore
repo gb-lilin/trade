@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+backend/data/paper_state.json
+backend/data/economic_news.json
+backend/data/risk_settings.json
+node_modules/
+frontend/dist/
+.DS_Store
