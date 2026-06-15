@@ -1,0 +1,2 @@
+# trade
+etf + preferred stock
