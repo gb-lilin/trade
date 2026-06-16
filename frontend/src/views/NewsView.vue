@@ -1,12 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { api } from '../api/client'
 import NewsItem from '../components/NewsItem.vue'
 
 const loading = ref(false)
 const pushing = ref(false)
-const data = ref<{ updated_at?: string; items: any[] }>({ items: [] })
+const data = ref<{ updated_at?: string; items: any[]; fetch_stats?: any; filter?: any }>({ items: [] })
 const msg = ref('')
+
+const filterHint = computed(() => {
+  const f = data.value.filter
+  if (!f?.rule) return ''
+  const kept = f.kept != null ? `，展示 ${f.kept} 条` : ''
+  const note = data.value.fetch_stats?.filter_note ? `（${data.value.fetch_stats.filter_note}）` : ''
+  return `筛选规则：${f.rule}${kept}${note}`
+})
+
+const sourceHint = computed(() => {
+  const st = data.value.fetch_stats
+  if (!st?.ok?.length) return ''
+  const failed = st.failed?.length ? `；${st.failed.length} 个源暂不可用` : ''
+  return `本次成功接入：${st.ok.join('、')}${failed}`
+})
 
 async function load(refresh = false) {
   loading.value = true
@@ -42,8 +57,10 @@ onMounted(() => load(false))
   <div>
     <h1 class="page-title">经济 / 财经新闻</h1>
     <p class="muted" style="margin-top: -0.5rem; margin-bottom: 1rem">
-      对应架构 <code>ai_news_push</code>：RSS 采集 → AI/规则解读 → 页面展示与飞书推送
+      多源采集 → 仅保留 <strong>24 小时内</strong>快讯，或<strong>宏观/政策</strong>要闻 → 多方印证与飞书推送
     </p>
+    <p v-if="filterHint" class="muted">{{ filterHint }}</p>
+    <p v-if="sourceHint" class="muted">{{ sourceHint }}</p>
     <div class="form-row">
       <button class="btn" :disabled="loading" @click="load(true)">{{ loading ? '刷新中…' : '拉取最新' }}</button>
       <button class="btn secondary" :disabled="pushing" @click="pushFeishu(false)">推送飞书（当前列表）</button>

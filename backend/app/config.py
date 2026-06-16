@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     feishu_webhook: str = ""
 
     news_rss_urls: str = ""
+    news_fresh_hours: float = 24.0
     openai_api_key: str = ""
 
     paper_initial_cash: float = 1_000_000.0

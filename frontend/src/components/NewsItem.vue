@@ -7,6 +7,10 @@ const props = defineProps<{
     summary?: string
     ai_brief?: string
     source?: string
+    sources?: string[]
+    consensus?: number
+    is_recent?: boolean
+    macro_policy?: boolean
     published_at?: string
     category?: string
     sentiment?: string
@@ -36,6 +40,9 @@ const timeText = computed(() => {
       <span class="tag cat">{{ catLabel[item.category || ''] || '资讯' }}</span>
       <span class="tag" :class="item.sentiment">{{ item.sentiment === 'positive' ? '偏多' : item.sentiment === 'negative' ? '偏空' : '中性' }}</span>
       <span v-if="item.pushed_at" class="tag pushed">已推送</span>
+      <span v-if="item.is_recent" class="tag recent">24h 内</span>
+      <span v-else-if="item.macro_policy" class="tag policy">宏观政策</span>
+      <span v-if="(item.consensus || 0) >= 2" class="tag consensus">多方 {{ item.consensus }} 源</span>
       <span class="muted">{{ item.source }} · {{ timeText }}</span>
     </div>
     <h4 class="news-title">
@@ -92,6 +99,18 @@ const timeText = computed(() => {
 .tag.pushed {
   background: rgba(234, 179, 8, 0.15);
   color: #fde047;
+}
+.tag.consensus {
+  background: rgba(20, 184, 166, 0.18);
+  color: #5eead4;
+}
+.tag.recent {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+.tag.policy {
+  background: rgba(168, 85, 247, 0.18);
+  color: #d8b4fe;
 }
 .news-title {
   margin: 0;

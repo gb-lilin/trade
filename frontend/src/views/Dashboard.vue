@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
 import NewsItem from '../components/NewsItem.vue'
-import { strategyLabel } from '../utils/labels'
+import { regimeLabel } from '../utils/labels'
 
 const loading = ref(true)
 const data = ref<any>(null)
@@ -20,15 +20,6 @@ onMounted(async () => {
   }
 })
 
-function regimeLabel(r: string) {
-  const map: Record<string, string> = {
-    bull: '偏多',
-    bear: '偏空',
-    neutral: '震荡',
-    high_vol: '高波动',
-  }
-  return map[r] || r
-}
 </script>
 
 <template>
@@ -96,16 +87,32 @@ function regimeLabel(r: string) {
       </div>
 
       <div class="card" style="margin-top: 1rem">
-        <h3>今日选股 Top10（V5 双策略）</h3>
+        <h3>每日股票推荐</h3>
+        <p v-if="data.daily_recommendations?.regime_hint" class="muted rec-hint">
+          {{ data.daily_recommendations.regime_hint }}
+          · 更新 {{ data.daily_recommendations.date }}
+        </p>
         <table>
           <thead>
-            <tr><th>代码</th><th>策略</th><th>综合分</th></tr>
+            <tr>
+              <th>代码</th>
+              <th>名称</th>
+              <th>指数</th>
+              <th>国家持股</th>
+              <th>综合分</th>
+              <th>推荐分</th>
+              <th>理由</th>
+            </tr>
           </thead>
           <tbody>
-            <tr v-for="p in data.picks" :key="p.symbol">
+            <tr v-for="p in data.daily_recommendations?.items || []" :key="p.symbol">
               <td>{{ p.symbol }}</td>
-              <td>{{ strategyLabel(p.strategy) }}</td>
+              <td>{{ p.name }}</td>
+              <td>{{ (p.index_tags || []).join('、') || '—' }}</td>
+              <td>{{ p.state_holding ? '是' : '—' }}</td>
               <td>{{ p.composite_score }}</td>
+              <td><strong>{{ p.final_score }}</strong></td>
+              <td class="reason">{{ p.reason }}</td>
             </tr>
           </tbody>
         </table>
@@ -128,5 +135,13 @@ function regimeLabel(r: string) {
   font-size: 0.85rem;
   color: var(--accent);
   text-decoration: none;
+}
+.rec-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+.reason {
+  max-width: 240px;
+  font-size: 0.85rem;
 }
 </style>

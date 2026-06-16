@@ -13,6 +13,7 @@ from app.risk.position_manager import PositionManager
 from app.risk.settings_store import get_risk_settings_store
 from app.signal.emotion import EmotionIndexV2
 from app.strategy.entry import EntryEngine
+from app.strategy.daily_stock_recommender import DailyStockRecommender
 from app.strategy.etf_recommender import EtfRecommender
 from app.strategy.screener_v5 import ScreenerV5
 
@@ -25,6 +26,7 @@ def get_services() -> dict:
         "dm": dm,
         "screener": ScreenerV5(dm),
         "etf": EtfRecommender(dm),
+        "daily_stocks": DailyStockRecommender(dm),
         "entry": EntryEngine(),
         "paper": paper,
         "backtest": BacktestEngine(),

@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.types import SignalSide, StrategyKind, TradeIntent
+from app.data.akshare_src import akshare_available
 from app.deps import get_services
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -21,19 +22,20 @@ class PaperTradeRequest(BaseModel):
     weight: float = Field(default=0.1, ge=0.01, le=0.25)
 
 
+
 @router.get("/health")
 async def health():
-    return {"status": "ok", "version": "5.1"}
+    return {"status": "ok", "version": "5.1", "akshare": akshare_available()}
 
 
 @router.get("/dashboard")
 async def dashboard():
     s = get_services()
-    dm, paper, screener, emotion = s["dm"], s["paper"], s["screener"], s["emotion"]
+    dm, paper, emotion = s["dm"], s["paper"], s["emotion"]
     regime = await dm.get_regime()
     index_bars = await dm.get_bars("000001", limit=80)
     emo = emotion.compute(index_bars)
-    picks = await screener.scan()
+    daily_rec = await s["daily_stocks"].recommend(limit=10)
     news_svc = s["news"]
     news_data = news_svc.list_items(limit=5)
     if not news_data.get("items"):
@@ -61,7 +63,7 @@ async def dashboard():
         "regime": regime,
         "emotion": emo,
         "market": market,
-        "picks": picks[:10],
+        "daily_recommendations": daily_rec,
         "portfolio": snap,
         "news": news_data,
     }
@@ -79,6 +81,13 @@ async def etf_recommend(limit: int = 10):
     s = get_services()
     lim = max(3, min(limit, 20))
     return await s["etf"].recommend(limit=lim)
+
+
+@router.get("/stocks/daily-recommend")
+async def daily_stock_recommend(limit: int = 10):
+    s = get_services()
+    lim = max(5, min(limit, 20))
+    return await s["daily_stocks"].recommend(limit=lim)
 
 
 @router.get("/quote/{symbol}")
@@ -267,14 +276,19 @@ async def news_list(limit: int = 30, refresh: bool = False):
             "updated_at": data.get("updated_at"),
             "items": data.get("items", [])[:limit],
             "count": min(limit, len(data.get("items", []))),
+            "fetch_stats": data.get("fetch_stats"),
+            "filter": (data.get("fetch_stats") or {}).get("filter") or svc._filter_meta(),
         }
     data = svc.list_items(limit=limit)
     if not data.get("items"):
         data = await svc.refresh()
+        fs = data.get("fetch_stats") or {}
         return {
             "updated_at": data.get("updated_at"),
             "items": data.get("items", [])[:limit],
             "count": min(limit, len(data.get("items", []))),
+            "fetch_stats": fs,
+            "filter": fs.get("filter") or svc._filter_meta(),
         }
     return data
 
@@ -283,7 +297,7 @@ async def news_list(limit: int = 30, refresh: bool = False):
 async def news_refresh():
     s = get_services()
     data = await s["news"].refresh()
-    return {"updated_at": data.get("updated_at"), "count": len(data.get("items", []))}
+    return {"updated_at": data.get("updated_at"), "count": len(data.get("items", [])), "fetch_stats": data.get("fetch_stats")}
 
 
 @router.post("/news/push")

@@ -9,13 +9,14 @@ from app.data.base import DataSource
 from app.data.market import MarketDataService
 from app.data.regime import RegimeDetector
 from app.data.sector import SectorService
+from app.data.akshare_src import AkshareDataSource
 from app.data.tencent import TencentDataSource
 from app.data.tushare_src import TuShareSource
 
 
 class DataManager:
     def __init__(self) -> None:
-        self._sources: list[DataSource] = [TencentDataSource()]
+        self._sources: list[DataSource] = [AkshareDataSource(), TencentDataSource()]
         self.market = MarketDataService()
         self.regime = RegimeDetector()
         self.sector = SectorService()

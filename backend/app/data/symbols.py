@@ -38,6 +38,16 @@ def normalize_symbol(symbol: str) -> str:
     return s.replace(".SH", "").replace(".SZ", "")
 
 
+def eastmoney_secid(symbol: str) -> str:
+    """东财 push2 接口 secid：1.600519（沪）/ 0.000001（深）。"""
+    s = normalize_symbol(symbol)
+    if s.startswith(("600", "601", "603", "605", "688", "689")) or s.startswith(("51", "58")):
+        return f"1.{s}"
+    if s.startswith("6"):
+        return f"1.{s}"
+    return f"0.{s}"
+
+
 def tencent_quote_code(symbol: str) -> str:
     """腾讯行情接口代码：sh600519 / sz159915。"""
     s = normalize_symbol(symbol)
