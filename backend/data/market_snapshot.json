@@ -1,0 +1,55 @@
+{
+  "breadth": {
+    "advancers": 1200,
+    "decliners": 0,
+    "limit_up": 131,
+    "limit_down": 0,
+    "oversold_count": 0
+  },
+  "hot_sectors": [
+    {
+      "code": "BK1625",
+      "name": "钨",
+      "change_pct": 9.64
+    },
+    {
+      "code": "BK1435",
+      "name": "磷肥及磷化工",
+      "change_pct": 8.8
+    },
+    {
+      "code": "BK1421",
+      "name": "钛白粉",
+      "change_pct": 8.31
+    },
+    {
+      "code": "BK1623",
+      "name": "钼",
+      "change_pct": 7.89
+    },
+    {
+      "code": "BK1614",
+      "name": "铅锌",
+      "change_pct": 7.83
+    },
+    {
+      "code": "BK1358",
+      "name": "保险Ⅲ",
+      "change_pct": 7.23
+    },
+    {
+      "code": "BK0474",
+      "name": "保险Ⅱ",
+      "change_pct": 7.23
+    },
+    {
+      "code": "BK1298",
+      "name": "文字媒体",
+      "change_pct": 7.17
+    }
+  ],
+  "dragon_tiger": [],
+  "trade_date": "2026-06-22",
+  "updated_at": "2026-06-22T14:13:17+08:00",
+  "source": "eastmoney"
+}

@@ -9,22 +9,31 @@ const loading = ref(true)
 const data = ref<any>(null)
 const error = ref('')
 
-onMounted(async () => {
+async function load(refresh = false) {
+  loading.value = true
+  error.value = ''
   try {
-    const res = await api.dashboard()
+    const res = await api.dashboard(refresh)
     data.value = res.data
   } catch (e: any) {
     error.value = e.message || '加载失败'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(() => load(true))
 
 </script>
 
 <template>
   <div>
     <h1 class="page-title">系统总览</h1>
+    <div class="page-actions">
+      <button class="btn" :disabled="loading" @click="load(true)">
+        {{ loading ? '刷新中…' : '刷新总览' }}
+      </button>
+    </div>
     <p v-if="loading" class="muted">加载中…</p>
     <p v-else-if="error" class="neg">{{ error }}</p>
     <template v-else-if="data">
@@ -49,6 +58,15 @@ onMounted(async () => {
       <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 1rem">
         <div class="card">
           <h3>市场宽度</h3>
+          <p v-if="data.market?.source === 'unavailable'" class="neg market-meta">
+            未能拉取实时行情，请稍后点击「刷新总览」重试。
+          </p>
+          <p v-else-if="data.market?.session_hint" class="muted market-meta">{{ data.market.session_hint }}</p>
+          <p v-else-if="data.market?.updated_at" class="muted market-meta">
+            行情日 {{ data.market.trade_date || '—' }}
+            · 更新 {{ data.market.updated_at }}
+            <span v-if="data.market.source"> · {{ data.market.source }}</span>
+          </p>
           <table>
             <tbody>
               <tr><td>上涨家数</td><td>{{ data.market.breadth.advancers }}</td></tr>
@@ -60,6 +78,7 @@ onMounted(async () => {
         </div>
         <div class="card">
           <h3>热门板块</h3>
+          <p v-if="data.market?.updated_at" class="muted market-meta">行业板块涨跌幅 Top</p>
           <table>
             <thead><tr><th>板块</th><th>涨跌%</th></tr></thead>
             <tbody>
@@ -122,6 +141,13 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.page-actions {
+  margin-bottom: 1rem;
+}
+.market-meta {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+}
 .card-head {
   display: flex;
   justify-content: space-between;

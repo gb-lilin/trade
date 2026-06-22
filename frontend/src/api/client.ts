@@ -4,7 +4,8 @@ const client = axios.create({ baseURL: '/api', timeout: 30000 })
 
 export const api = {
   health: () => client.get('/health'),
-  dashboard: () => client.get('/dashboard'),
+  dashboard: (refresh = false) =>
+    client.get('/dashboard', { params: refresh ? { refresh: true } : {} }),
   scan: (symbols?: string) => client.get('/scan', { params: symbols ? { symbols } : {} }),
   etfRecommend: (limit = 10) => client.get('/etf/recommend', { params: { limit } }),
   portfolio: () => client.get('/portfolio'),

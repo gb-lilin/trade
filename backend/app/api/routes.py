@@ -29,10 +29,10 @@ async def health():
 
 
 @router.get("/dashboard")
-async def dashboard():
+async def dashboard(refresh: bool = False):
     s = get_services()
     dm, paper, emotion = s["dm"], s["paper"], s["emotion"]
-    regime = await dm.get_regime()
+    regime = await dm.get_regime(force_market_refresh=refresh)
     index_bars = await dm.get_bars("000001", limit=80)
     emo = emotion.compute(index_bars)
     daily_rec = await s["daily_stocks"].recommend(limit=10)
@@ -53,11 +53,19 @@ async def dashboard():
     if prices:
         paper.update_prices(prices)
         snap = paper.snapshot()
-    snap_m = await dm.market.get_snapshot()
+    snap_m = await dm.market.get_snapshot(force_refresh=False)
+    b = snap_m.breadth.__dict__
+    session_hint = ""
+    if b.get("advancers", 0) == 0 and b.get("decliners", 0) == 0 and snap_m.hot_sectors:
+        session_hint = "休市或盘外时涨跌家数可能为 0；行业板块仍可参考。"
     market = {
-        "breadth": snap_m.breadth.__dict__,
+        "breadth": b,
         "hot_sectors": snap_m.hot_sectors,
         "dragon_tiger": snap_m.dragon_tiger,
+        "trade_date": snap_m.trade_date,
+        "updated_at": snap_m.updated_at,
+        "source": snap_m.source,
+        "session_hint": session_hint or None,
     }
     return {
         "regime": regime,

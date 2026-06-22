@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
+
+from app.data.eastmoney_market import fetch_market_live
+
 
 class SectorService:
     async def hot_sectors(self, limit: int = 10) -> list[dict]:
-        data = [
-            {"code": "BK0447", "name": "半导体", "change_pct": 2.8, "lead_stock": "688981"},
-            {"code": "BK0800", "name": "人工智能", "change_pct": 2.1, "lead_stock": "002230"},
-            {"code": "BK0493", "name": "锂电池", "change_pct": 1.4, "lead_stock": "300750"},
-        ]
-        return data[:limit]
+        try:
+            live = await asyncio.to_thread(fetch_market_live, sector_limit=limit)
+            return list(live.get("hot_sectors") or [])[:limit]
+        except Exception:
+            return []

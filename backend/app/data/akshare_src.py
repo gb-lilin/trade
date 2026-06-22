@@ -44,19 +44,25 @@ _EM_HEADERS = {
 
 def _quote_from_bid_ask(symbol: str, code: str) -> Quote | None:
     secid = eastmoney_secid(symbol)
-    url = "https://push2.eastmoney.com/api/qt/stock/get"
     params = {
         "fltt": "2",
         "invt": "2",
         "fields": "f43,f57,f58,f169,f170,f47,f60",
         "secid": secid,
     }
-    try:
-        with httpx.Client(timeout=8.0, headers=_EM_HEADERS) as client:
-            r = client.get(url, params=params)
-            r.raise_for_status()
-            data = r.json().get("data") or {}
-    except Exception:
+    data: dict = {}
+    for base in ("https://push2delay.eastmoney.com", "https://push2.eastmoney.com"):
+        url = f"{base}/api/qt/stock/get"
+        try:
+            with httpx.Client(timeout=8.0, headers=_EM_HEADERS) as client:
+                r = client.get(url, params=params)
+                r.raise_for_status()
+                data = r.json().get("data") or {}
+                if data:
+                    break
+        except Exception:
+            continue
+    if not data:
         return None
     price = _to_float(data.get("f43"))
     if price <= 0:

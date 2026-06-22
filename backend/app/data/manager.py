@@ -41,8 +41,8 @@ class DataManager:
                 return bars
         return []
 
-    async def get_regime(self) -> dict:
-        snap = await self.market.get_snapshot()
+    async def get_regime(self, *, force_market_refresh: bool = False) -> dict:
+        snap = await self.market.get_snapshot(force_refresh=force_market_refresh)
         adv = snap.breadth.advancers
         dec = snap.breadth.decliners
         ratio = adv / max(adv + dec, 1)
